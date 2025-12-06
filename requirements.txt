@@ -13,3 +13,4 @@ grad-cam
 fastapi
 uvicorn
 python-multipart
+opencv-python-headless
