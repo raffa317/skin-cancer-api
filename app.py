@@ -105,6 +105,15 @@ def scan_view():
         top_score = probabilities[top_class_idx].item()
         
         st.success(f"Prediction: **{top_label}**")
+        
+        # Grad-CAM (Moved up)
+        st.subheader("Explainability (Grad-CAM):")
+        try:
+            cam_image = get_gradcam(model, image_tensor, target_class=top_class_idx)
+            st.image(cam_image, caption='Grad-CAM Heatmap', use_column_width=True)
+        except Exception as e:
+            st.error(f"Could not generate Grad-CAM: {e}")
+            
         st.write(f"Confidence: {top_score*100:.2f}%")
         st.progress(top_score)
         
@@ -118,13 +127,6 @@ def scan_view():
             st.error("⚠️ **High Risk Alert**: Consult a dermatologist immediately.")
         else:
             st.info("ℹ️ **Note**: Monitor for changes. Consult a doctor if concerned.")
-            
-        st.subheader("Explainability (Grad-CAM):")
-        try:
-            cam_image = get_gradcam(model, image_tensor, target_class=top_class_idx)
-            st.image(cam_image, caption='Grad-CAM Heatmap', use_column_width=True)
-        except Exception as e:
-            st.error(f"Could not generate Grad-CAM: {e}")
 
 def history_view():
     st.title("My Scan History")
@@ -139,12 +141,49 @@ def history_view():
     df['Confidence'] = df['Confidence'].apply(lambda x: f"{x*100:.1f}%")
     st.dataframe(df, use_container_width=True)
 
+def performance_view():
+    st.title("Model Performance Report")
+    st.write("This model was evaluated on **2,003 unseen images** (Validation Set).")
+    
+    col1, col2, col3 = st.columns(3)
+    col1.metric("Overall Accuracy", "97%")
+    col2.metric("Cancer Detection Recall", "95%")
+    col3.metric("Binary Accuracy", "98%")
+    
+    st.subheader("1. Binary Classification (Cancer vs Other)")
+    st.code("""
+              precision    recall  f1-score   support
+
+      cancer       0.93      0.95      0.94       408
+       other       0.99      0.98      0.99      1595
+
+    accuracy                           0.98      2003
+    """, language="text")
+
+    st.subheader("2. Detailed Classification (7 Classes)")
+    st.code("""
+              precision    recall  f1-score   support
+
+       akiec       0.91      0.82      0.86        75
+         bcc       0.94      0.96      0.95       105
+         bkl       0.97      0.94      0.95       202
+          df       1.00      0.96      0.98        27
+         mel       0.91      0.92      0.92       228
+          nv       0.98      0.98      0.98      1339
+        vasc       1.00      1.00      1.00        27
+
+    accuracy                           0.97      2003
+    """, language="text")
+
 def main():
     st.sidebar.title("Skin Cancer AI")
     
+    # Reboot Warning
+    st.sidebar.warning("⚠️ **Note:** On this Free Cloud, user data resets if the app reboots.")
+    
     if st.session_state.logged_in:
         st.sidebar.write(f"Welcome, **{st.session_state.username}**!")
-        page = st.sidebar.radio("Navigation", ["Scan", "History"])
+        page = st.sidebar.radio("Navigation", ["Scan", "History", "Performance"])
         if st.sidebar.button("Logout"):
             st.session_state.logged_in = False
             st.session_state.user_id = None
@@ -155,15 +194,19 @@ def main():
             scan_view()
         elif page == "History":
             history_view()
+        elif page == "Performance":
+            performance_view()
             
     else:
         st.sidebar.info("Please Login to save your scans.")
-        page = st.sidebar.radio("Navigation", ["Login", "Register"])
+        page = st.sidebar.radio("Navigation", ["Login", "Register", "Performance"])
         
         if page == "Login":
             login_view()
         elif page == "Register":
             register_view()
+        elif page == "Performance":
+            performance_view()
 
 if __name__ == "__main__":
     main()
