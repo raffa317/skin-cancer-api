@@ -7,3 +7,4 @@ pandas
 bcrypt
 fpdf
 protobuf
+pytorch-grad-cam
