@@ -1,17 +1,9 @@
---extra-index-url https://download.pytorch.org/whl/cpu
-torch
-torchvision
-pandas
-numpy
-scikit-learn
-matplotlib
-seaborn
-streamlit
-kagglehub
-Pillow
-grad-cam
-fastapi
-uvicorn
-python-multipart
-opencv-python-headless
-bcrypt
+streamlit==1.31.0
+torch==2.1.0
+torchvision==0.16.0
+Pillow==10.2.0
+numpy==1.26.3
+pandas==2.1.4
+bcrypt==4.1.2
+fpdf==1.7.2
+protobuf==4.25.2

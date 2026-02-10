@@ -1,0 +1,5 @@
+# Streamlit Cloud Configuration
+# This file tells Streamlit Cloud which Python version to use
+
+[general]
+email = ""
