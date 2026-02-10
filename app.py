@@ -3,7 +3,12 @@ import torch
 from torchvision import transforms
 from PIL import Image
 from src.model import get_model
-from src.visualization.gradcam import get_gradcam
+try:
+    from src.visualization.gradcam import get_gradcam
+    GRADCAM_AVAILABLE = True
+except ImportError:
+    GRADCAM_AVAILABLE = False
+    st.warning("GradCAM visualization not available")
 import os
 import numpy as np
 import src.utils.database as db
@@ -158,21 +163,22 @@ def scan_view():
         st.success(f"Prediction: **{top_label}**")
         
         # Grad-CAM / Score-CAM
-        st.subheader("Explainability:")
-        
-        # User Choice
-        cam_method = st.radio("Visualization Method:", ("Grad-CAM", "Score-CAM"), horizontal=True)
-        
-        try:
-            # Use the first available model for GradCAM (they should focus on similar features)
-            first_model = list(models.values())[0] if models else None
-            if first_model:
-                cam_image = get_gradcam(first_model, image_tensor, target_class=top_class_idx, method=cam_method)
-                st.image(cam_image, caption=f'{cam_method} Heatmap', use_column_width=True)
-            else:
-                st.error("No model available for visualization")
-        except Exception as e:
-            st.error(f"Could not generate {cam_method}: {e}")
+        if GRADCAM_AVAILABLE:
+            st.subheader("Explainability:")
+            
+            # User Choice
+            cam_method = st.radio("Visualization Method:", ("Grad-CAM", "Score-CAM"), horizontal=True)
+            
+            try:
+                # Use the first available model for GradCAM (they should focus on similar features)
+                first_model = list(models.values())[0] if models else None
+                if first_model:
+                    cam_image = get_gradcam(first_model, image_tensor, target_class=top_class_idx, method=cam_method)
+                    st.image(cam_image, caption=f'{cam_method} Heatmap', use_column_width=True)
+                else:
+                    st.error("No model available for visualization")
+            except Exception as e:
+                st.error(f"Could not generate {cam_method}: {e}")
             
         st.write(f"Confidence: {top_score*100:.2f}%")
         st.progress(top_score)
